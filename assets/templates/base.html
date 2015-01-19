@@ -1,0 +1,36 @@
+{{define "base"}}
+<!DOCTYPE html>
+<html lang="en" xml:lang="en">
+<head>
+    <meta http-equiv="content-type" content="text/html;charset=utf-8"/>
+    <title>{{.Title}}</title>
+    <link rel="stylesheet" type="text/css" href="/x/static/css/reset.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="/x/static/css/style.css" media="screen" />
+    <script type="text/javascript" src="/x/static/js/jquery-2.0.3.min.js"></script>
+    <script type="text/javascript">
+    {{ template "javascript" .}}
+    </script>
+</head>
+<body>
+            <a href="/x/logout">Logout</a>
+{{ template "body" .}}
+</body>
+</html>
+{{end}}
+
+{{define "table"}}
+<table id="example" class="display cell-border" >
+  <thead>
+    <tr>
+      {{ range .Columns }}<th>{{.}}</th>{{ end }}
+    </tr>
+  </thead>
+  <tbody>
+    {{ range .Rows }}
+    <tr>
+    {{ range . }}<td>{{.}}</td>{{ end }}
+    </tr>
+    {{ end }}
+  </tbody>
+</table>
+{{end}}
