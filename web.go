@@ -23,20 +23,20 @@ const (
 	accessLog = "access.log"
 	errorLog  = "error.log"
 	uCookie   = "userinfo"
+
 	//disable caching for testing
 	//maxAge	  = 259200
 	maxAge = 0
 )
 
 var (
-	secure_url, insecure_url, ip string
-	errorFile                    *os.File
-	tmpl                         map[string]*template.Template
-	TDir                         = "assets/templates"
-	BaseFile                     = "base.html"
-	fm                           = template.FuncMap{"isTrue": isTrue}
-	Verbose                      = false
-	cacheControl                 = fmt.Sprintf("public, max-age=%d", maxAge)
+	errorFile    *os.File
+	tmpl         map[string]*template.Template
+	TDir         = "assets/templates"
+	BaseFile     = "base.html"
+	fm           = template.FuncMap{"isTrue": isTrue}
+	Verbose      = false
+	cacheControl = fmt.Sprintf("public, max-age=%d", maxAge)
 )
 
 type HFunc struct {
@@ -154,7 +154,6 @@ func objFromForm(obj interface{}, values map[string][]string) {
 func currentUser(r *http.Request) *User {
 	cookie, err := r.Cookie(uCookie)
 	if err != nil {
-		fmt.Println("cookie error for user", err)
 		return nil
 	}
 	return UserFromCookie(cookie.Value)
@@ -174,16 +173,6 @@ func init() {
 	assets_dir, _ = filepath.Abs(assets_dir) // CWD may change at runtime
 	TDir, _ = filepath.Abs(TDir)             // CWD may change at runtime
 	LoadKey(secretKey)
-}
-
-type statusLoggingResponseWriter struct {
-	status int
-	http.ResponseWriter
-}
-
-func (w *statusLoggingResponseWriter) WriteHeader(code int) {
-	w.status = code
-	w.ResponseWriter.WriteHeader(code)
 }
 
 func StaticPage(w http.ResponseWriter, r *http.Request) {
@@ -227,20 +216,7 @@ func authMiddleware(next http.Handler) http.Handler {
 		if r.Method == "GET" {
 			if ProtectedPage(r) {
 				const u = pathPrefix + "/login"
-				/*
-					cookie, err := r.Cookie(ACookie)
-					//TODO: we should check the cookie value to be valid, not just any string
-				*/
-				/*
-					auth := (err == nil && ValidCookie(cookie.Value))
-					fmt.Println("AUTH", auth, "COOKIE", cookie.Value)
-					if !(auth || r.URL.Path == u) {
-						http.Redirect(w, r, u, 302)
-						return
-					}
-				*/
 				user := currentUser(r)
-				fmt.Println("URL", r.URL.Path, "USER", user)
 				if user == nil {
 					http.Redirect(w, r, u, 302)
 					return
@@ -251,32 +227,9 @@ func authMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-/*
-func XXauthMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		const u = pathPrefix + "/login"
-		const s = pathPrefix + "/static"
-		if r.Method == "GET" {
-			// static pages should always be accessible (login page uses them!)
-			if !(len(r.URL.Path) > len(s) && r.URL.Path[:len(s)] == s) {
-				cookie, err := r.Cookie(ACookie)
-				//TODO: we should check the cookie value to be valid, not just any string
-				auth := (err == nil && ValidCookie(cookie.Value))
-				if !(auth || r.URL.Path == u) {
-					http.Redirect(w, r, u, 302)
-					return
-				}
-			}
-		}
-		next.ServeHTTP(w, r)
-	})
-}
-*/
-
 // to have a common root to run against a a proxy
 // automatically redirects non-proxy link
 func usePrefix(w http.ResponseWriter, r *http.Request) {
-	// fmt.Println("Redirect", r.URL.Path, "To", pathPrefix+r.URL.Path)
 	if r.Method == "POST" {
 		http.Redirect(w, r, pathPrefix+r.URL.Path, 307)
 	} else {
@@ -286,14 +239,12 @@ func usePrefix(w http.ResponseWriter, r *http.Request) {
 
 func webServer(handlers []HFunc) {
 	LoadTemplates(TDir, BaseFile, fm)
-	ip = MyIp()
 	http.HandleFunc("/", usePrefix)
 	for _, h := range handlers {
-		//http.HandleFunc(h.Path, h.Func)
 		http.Handle(pathPrefix+h.Path, authMiddleware(h.Func))
 	}
 
-	http_server := fmt.Sprintf(":%d", http_port)
+	http_server := fmt.Sprintf("%s:%d", MyIp(), http_port)
 	if err := os.MkdirAll(logDir, 0755); err != nil {
 		log.Panic(err)
 	}
