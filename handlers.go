@@ -1,11 +1,8 @@
 package main
 
 import (
-	//"encoding/json"
 	"fmt"
-	//"net"
 	"net/http"
-	//"os"
 	"strconv"
 	"strings"
 	"time"
@@ -54,17 +51,13 @@ func UserEdit(w http.ResponseWriter, r *http.Request) {
 		r.ParseForm()
 		var u User
 		objFromForm(&u, r.Form)
-		//	var action string
 		if u.ID == 0 {
 			if err := u.Add(); err != nil {
 				fmt.Println("Add error", err)
 			}
-			//	action = "added"
 		} else {
-			//	action = "modified"
 			u.Update()
 		}
-		//user := currentUser(r)
 		http.Redirect(w, r, "/user/list", http.StatusSeeOther)
 	} else {
 		const pref = len(pathPrefix + "/user/edit/")
@@ -79,12 +72,10 @@ func UserEdit(w http.ResponseWriter, r *http.Request) {
 			Title    string
 			User     *User
 			EditUser *User
-			//Levels   []userLevel
 		}{
 			Title:    title,
 			User:     currentUser(r),
 			EditUser: edit,
-			//Levels:   userLevels,
 		}
 		renderTemplate(w, r, "user_edit", true, data)
 	}
@@ -108,10 +99,6 @@ func DebugPage(w http.ResponseWriter, r *http.Request) {
 }
 
 func logoutPage(w http.ResponseWriter, r *http.Request) {
-	/*
-		c := &http.Cookie{Name: ACookie, Value: "", Path: "/", Expires: time.Unix(0, 0)}
-		http.SetCookie(w, c)
-	*/
 	c := &http.Cookie{Name: UCookie, Value: "", Path: "/", Expires: time.Unix(0, 0)}
 	http.SetCookie(w, c)
 	http.Redirect(w, r, pathPrefix+"/", 302)
@@ -123,7 +110,6 @@ type Profile struct {
 }
 
 func loginPage(w http.ResponseWriter, r *http.Request, errMsg string) {
-	///data := struct{ Prefix, Prompt, ErrorMsg string }{Prefix: pathPrefix, Prompt: loginPrompt, ErrorMsg: errMsg}
 	data := Profile{Prefix: pathPrefix, Prompt: loginPrompt, ErrorMsg: errMsg}
 	renderTemplate(w, r, "login", false, data)
 }
@@ -141,15 +127,6 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		if user := Authenticate(username, password); user != nil {
 			fmt.Println("OK", username, password)
 			expires := time.Now().Add(time.Minute * sessionMinutes)
-			/*
-				cookie := &http.Cookie{
-					Name:    ACookie,
-					Value:   ASecret,
-					Path:    "/",
-					Expires: expires,
-				}
-				http.SetCookie(w, cookie)
-			*/
 
 			u := &http.Cookie{
 				Name:    uCookie,
@@ -159,7 +136,6 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 			}
 			http.SetCookie(w, u)
 
-			fmt.Println("REDIRECT", pathPrefix+"/")
 			http.Redirect(w, r, pathPrefix+"/", 302)
 		} else {
 			loginPage(w, r, "Invalid login credentials")
@@ -185,7 +161,6 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 			renderTemplate(w, r, "register", false, data)
 			return
 		}
-		fmt.Println("USER", u)
 		http.Redirect(w, r, pathPrefix+"/", 302)
 	} else {
 		data := Profile{Prefix: pathPrefix, Prompt: loginPrompt}
