@@ -11,14 +11,14 @@ var (
 
 func TestEncrypt(t *testing.T) {
 	var err error
-	testSecret, err = stringEncrypt(testText)
+	testSecret, err = StringEncrypt(testText)
 	if err != nil {
 		t.Fatal(err)
 	}
 }
 
 func TestDecrypt(t *testing.T) {
-	revealed, err := stringDecrypt(testSecret)
+	revealed, err := StringDecrypt(testSecret)
 	if err != nil {
 		t.Fatal(err)
 	}
